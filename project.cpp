@@ -12,7 +12,7 @@ int evaluation_function(vector<int> board) {
     for (int i=0; i<board.size(); i++) {
         int col = board[i];
         for (int j=i+1; j<board.size(); j++) {
-            if ((board[j]==col+j-i) || (board[j]==col-j+i)) eval++;
+            if ((board[j]==col+j-i) || (board[j]==col-j+i) || board[j]==col) eval++;
         }
     }
     return eval;
@@ -71,7 +71,7 @@ int main() {
         initial_population.push_back(board_sample);
     }
 
-    for (auto b : initial_population) print_board(b);
+    // for (auto b : initial_population) print_board(b);
 
     // evaluating population fitness
     vector<int> population_fitness;
@@ -96,6 +96,9 @@ int main() {
         }
     }
 
+    // for (auto b : selected_population) print_board(b);
+
+
     // cross-over
     vector<vector<int> > offsprings;
     for (int i=0; i<population_size; i+=2){
@@ -104,16 +107,83 @@ int main() {
         offsprings.push_back(children.second);
     }
 
+    // for (auto b : offsprings) print_board(b);
+
     // mutation 
     vector<vector<int> > mutated_offsprings;
     for (auto child : offsprings) {
         if (dis(gen)>0.5){
             int random_row = rand()%board_size;
-            int new_col = rand()%board_size;
+            int new_col = rand()%board_size + 1;
             child[random_row] = new_col;
+            mutated_offsprings.push_back(child);
         }
+        else mutated_offsprings.push_back(child);
     }
 
+    // for (auto b : mutated_offsprings) print_board(b);
+
+    // for starting the iterations, update initial_population
+    initial_population=mutated_offsprings;
+
+    vector<int> solution;
+    int iter = 0;
+    while (iter < 100000) {
+        // for (auto b : initial_population) print_board(b);
+        // evaluating population fitness
+        bool found_solution = false;
+        int cumulative_fitness=0;
+        for (int i=0; i<population_size; i++){
+            int fitness = evaluation_function(initial_population[i]);
+            cout << fitness << "\n";
+            print_board(initial_population[i]);
+            cout << "\n";
+            if (fitness==0) {
+                found_solution=true;
+                solution = initial_population[i];
+                break;
+            }
+            cumulative_fitness += fitness;
+            population_fitness[i] = cumulative_fitness;
+        }
+
+        if (found_solution) break;
+
+        // selection
+        for (int i=0; i<population_size; i++){
+            int rand_sample = rand()%cumulative_fitness;
+            for (int j=0; j<population_size; j++){
+                if (rand_sample<population_fitness[j]){
+                    selected_population[i]=initial_population[j];
+                    break;
+                }
+            }
+        }
+
+        // cross-over
+        for (int i=0; i<population_size; i+=2){
+            pair<vector<int>, vector<int> > children = crossover(selected_population[i],selected_population[i+1]);
+            offsprings[i]=children.first;
+            offsprings[i+1]=children.second;
+        }
+
+        // mutation 
+        for (int i=0; i<population_size; i++) {
+            if (dis(gen)>0.5){
+                int random_row = rand()%board_size;
+                int new_col = rand()%board_size + 1;
+                mutated_offsprings[i][random_row] = new_col;
+            }
+        }
+
+        // for next iteration, update initial_population
+        initial_population=mutated_offsprings;
+
+        iter++;
+    }
+
+    print_board(solution);
+    cout << iter << "\n";
 
     return 0;
 }
