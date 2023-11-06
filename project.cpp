@@ -6,8 +6,8 @@
 using namespace std;
 
 
-// given the state of the board, return the number of attacking pair of queens
-int evaluation_function(vector<int> board) {
+// given the state of board, return number of non-attacking pair of queens
+int fitness_function(vector<int> board) {
     int eval = 0;
     for (int i=0; i<board.size(); i++) {
         int col = board[i];
@@ -18,7 +18,7 @@ int evaluation_function(vector<int> board) {
     return (board.size()*(board.size()-1))/2 - eval;
 }
 
-pair<vector<int>, vector<int> > crossover(const std::vector<int>& parent1, const std::vector<int>& parent2) {
+pair<vector<int>, vector<int> > crossover(const vector<int>& parent1, const vector<int>& parent2) {
     // Assuming parent1 and parent2 have the same size
     int n = parent1.size();
 
@@ -26,14 +26,14 @@ pair<vector<int>, vector<int> > crossover(const std::vector<int>& parent1, const
     int crossover_point = rand() % n;
 
     // Create the first offspring by combining the first part of parent1 and the second part of parent2
-    std::vector<int> offspring1(parent1.begin(), parent1.begin() + crossover_point);
+    vector<int> offspring1(parent1.begin(), parent1.begin() + crossover_point);
     offspring1.insert(offspring1.end(), parent2.begin() + crossover_point, parent2.end());
 
     // Create the second offspring by combining the first part of parent2 and the second part of parent1
-    std::vector<int> offspring2(parent2.begin(), parent2.begin() + crossover_point);
+    vector<int> offspring2(parent2.begin(), parent2.begin() + crossover_point);
     offspring2.insert(offspring2.end(), parent1.begin() + crossover_point, parent1.end());
 
-    return std::make_pair(offspring1, offspring2);
+    return make_pair(offspring1, offspring2);
 }
 
 void print_board(vector<int> board) {
@@ -58,8 +58,8 @@ int main() {
     std::uniform_real_distribution<float> dis(0.0, 1.0);
 
 
-    int population_size = 16;
-    int board_size = 8;
+    int population_size = 8;
+    int board_size = 10;
 
     // initializing initial population
     vector<vector<int> > initial_population;
@@ -71,73 +71,24 @@ int main() {
         initial_population.push_back(board_sample);
     }
 
-    // for (auto b : initial_population) print_board(b);
+    vector<int> population_fitness(population_size, 0);
+    vector<vector<int> > selected_population = initial_population;
+    vector<vector<int> > offsprings = initial_population;
+    vector<vector<int> > mutated_offsprings = initial_population;
 
-    // evaluating population fitness
-    vector<int> population_fitness;
-    int cumulative_fitness=0;
-    for (int i=0; i<population_size; i++){
-        int fitness = evaluation_function(initial_population[i]);
-        cumulative_fitness += fitness;
-        population_fitness.push_back(cumulative_fitness);
-    }
-
-
-
-    // selection
-    vector<vector<int> > selected_population;
-    for (int i=0; i<population_size; i++){
-        int rand_sample = rand()%cumulative_fitness;
-        for (int j=0; j<population_size; j++){
-            if (rand_sample<population_fitness[j]){
-                selected_population.push_back(initial_population[j]);
-                break;
-            }
-        }
-    }
-
-    // for (auto b : selected_population) print_board(b);
-
-
-    // cross-over
-    vector<vector<int> > offsprings;
-    for (int i=0; i<population_size; i+=2){
-        pair<vector<int>, vector<int> > children = crossover(selected_population[i],selected_population[i+1]);
-        offsprings.push_back(children.first);
-        offsprings.push_back(children.second);
-    }
-
-    // for (auto b : offsprings) print_board(b);
-
-    // mutation 
-    vector<vector<int> > mutated_offsprings;
-    for (auto child : offsprings) {
-        if (dis(gen)>0.5){
-            int random_row = rand()%board_size;
-            int new_col = rand()%board_size + 1;
-            child[random_row] = new_col;
-            mutated_offsprings.push_back(child);
-        }
-        else mutated_offsprings.push_back(child);
-    }
-
-    // for (auto b : mutated_offsprings) print_board(b);
-
-    // for starting the iterations, update initial_population
-    initial_population=mutated_offsprings;
 
     vector<int> solution;
     int iter = 0;
-    while (iter < 500000) {
+    while (iter < 5000000) {
         // for (auto b : initial_population) print_board(b);
         // evaluating population fitness
         bool found_solution = false;
         int cumulative_fitness=0;
         for (int i=0; i<population_size; i++){
-            int fitness = evaluation_function(initial_population[i]);
-            cout << fitness << "\n";
-            print_board(initial_population[i]);
-            cout << "\n";
+            int fitness = fitness_function(initial_population[i]);
+            // cout << fitness << "\n";
+            // print_board(initial_population[i]);
+            // cout << "\n";
             if (fitness==(board_size*(board_size-1))/2) {
                 found_solution=true;
                 solution = initial_population[i];
