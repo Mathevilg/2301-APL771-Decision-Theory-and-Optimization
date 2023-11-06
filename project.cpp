@@ -15,7 +15,7 @@ int evaluation_function(vector<int> board) {
             if ((board[j]==col+j-i) || (board[j]==col-j+i) || board[j]==col) eval++;
         }
     }
-    return eval;
+    return (board.size()*(board.size()-1))/2 - eval;
 }
 
 pair<vector<int>, vector<int> > crossover(const std::vector<int>& parent1, const std::vector<int>& parent2) {
@@ -58,7 +58,7 @@ int main() {
     std::uniform_real_distribution<float> dis(0.0, 1.0);
 
 
-    int population_size = 8;
+    int population_size = 16;
     int board_size = 8;
 
     // initializing initial population
@@ -128,7 +128,7 @@ int main() {
 
     vector<int> solution;
     int iter = 0;
-    while (iter < 100000) {
+    while (iter < 500000) {
         // for (auto b : initial_population) print_board(b);
         // evaluating population fitness
         bool found_solution = false;
@@ -138,7 +138,7 @@ int main() {
             cout << fitness << "\n";
             print_board(initial_population[i]);
             cout << "\n";
-            if (fitness==0) {
+            if (fitness==(board_size*(board_size-1))/2) {
                 found_solution=true;
                 solution = initial_population[i];
                 break;
