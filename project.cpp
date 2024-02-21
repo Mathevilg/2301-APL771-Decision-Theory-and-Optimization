@@ -59,7 +59,9 @@ int main() {
 
 
     int population_size = 8;
-    int board_size = 10;
+    int board_size;
+    cout << "Enter the board size : ";
+    std::cin >> board_size;
 
     // initializing initial population
     vector<vector<int> > initial_population;
@@ -132,9 +134,9 @@ int main() {
 
         iter++;
     }
-
+    cout << "Solution : \n"; 
     print_board(solution);
-    cout << iter << "\n";
+    // cout << iter << "\n";
 
     return 0;
 }
